@@ -10,15 +10,13 @@ const getBaseUrl = () => {
     return '/api';
   }
   
-  // Check if we're running on Vercel (which has its own proxy in vercel.json)
-  if (window.location.hostname.includes('vercel.app') || 
-      process.env.VERCEL || 
-      window.location.hostname !== 'localhost') {
+  // Check if we're running on Vercel (which has its own proxy configured in the dashboard)
+  if (window.location.hostname.includes('vercel.app')) {
     // Use relative path for Vercel's rewrites
     return '/api';
   }
   
-  // Otherwise use the full API URL from environment variables
+  // For other production environments, use the full API URL from environment variables
   return apiUrl || '';
 };
 
@@ -38,6 +36,12 @@ api.interceptors.request.use(
     // if (token) {
     //   config.headers.Authorization = `Bearer ${token}`;
     // }
+    
+    // Log the API URL being used (helpful for debugging)
+    const baseUrl = config.baseURL || '';
+    const url = config.url || '';
+    console.log('API Request to:', baseUrl + url);
+    
     return config;
   },
   (error) => {
