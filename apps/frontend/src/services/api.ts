@@ -3,15 +3,20 @@ import axios from 'axios';
 // Determine the base URL based on the environment
 const getBaseUrl = () => {
   const mode = import.meta.env.MODE;
-  const apiUrl = import.meta.env.VITE_API_URL || 'https://zero-balance-production.up.railway.app';
+  const apiUrl = import.meta.env.VITE_API_URL;
   
   // In development, use the proxy defined in vite.config.ts
   if (mode === 'development') {
     return '/api';
   }
   
-  // In production, use the full API URL directly
-  return apiUrl;
+  // In production, use the API URL from environment variables
+  // This will be set in Vercel environment variables
+  if (!apiUrl) {
+    console.warn('VITE_API_URL environment variable is not set. API calls may fail.');
+  }
+  
+  return apiUrl || '';
 };
 
 // Create an axios instance with the base URL
