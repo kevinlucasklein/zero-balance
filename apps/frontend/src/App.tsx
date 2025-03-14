@@ -1,18 +1,39 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import api from "./services/api";
 
 function App() {
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    axios.get("http://localhost:8080").then((response) => {
-      setMessage(response.data);
-    });
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const response = await api.get("/");
+        setMessage(response.data);
+        setError("");
+      } catch (err) {
+        console.error("Failed to fetch data:", err);
+        setError("Failed to connect to the API. Please check your connection.");
+        setMessage("");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
   return (
     <div className="flex h-screen items-center justify-center text-center">
-      <h1 className="text-3xl font-bold">{message}</h1>
+      {loading ? (
+        <p className="text-xl">Loading...</p>
+      ) : error ? (
+        <p className="text-xl text-red-500">{error}</p>
+      ) : (
+        <h1 className="text-3xl font-bold">{message}</h1>
+      )}
     </div>
   );
 }
