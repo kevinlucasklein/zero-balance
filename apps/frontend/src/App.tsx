@@ -10,8 +10,10 @@ function App() {
     const fetchData = async () => {
       try {
         setLoading(true);
+        console.log("Making API request to backend...");
         const response = await api.get("/");
-        setMessage(response.data);
+        console.log("API response:", response.data);
+        setMessage(response.data.message || JSON.stringify(response.data));
         setError("");
       } catch (err) {
         console.error("Failed to fetch data:", err);
