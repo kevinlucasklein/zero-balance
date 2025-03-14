@@ -34,7 +34,28 @@ Instead of hardcoding your API URL in vercel.json, you can configure rewrites in
 
 This keeps your API URL out of your code repository.
 
-## 4. Update Your API Service
+## 4. Verify Your vercel.json Configuration
+
+Make sure your `vercel.json` file is correctly configured:
+
+```json
+{
+  "rewrites": [
+    { 
+      "source": "/api/:path*", 
+      "destination": "/api/:path*" 
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
+```
+
+Note: Vercel doesn't allow mixing newer properties (`rewrites`) with legacy properties (`routes`).
+
+## 5. Update Your API Service
 
 Make sure your API service is configured to use environment variables:
 
@@ -43,7 +64,7 @@ Make sure your API service is configured to use environment variables:
 const apiUrl = import.meta.env.VITE_API_URL || '';
 ```
 
-## 5. Redeploy Your Application
+## 6. Redeploy Your Application
 
 After making changes:
 
@@ -53,7 +74,7 @@ After making changes:
    - Click "Deployments"
    - Click "Redeploy" on your latest deployment
 
-## 6. Check Build Logs
+## 7. Check Build Logs
 
 If your application still isn't working:
 
@@ -62,7 +83,7 @@ If your application still isn't working:
 3. Select your latest deployment
 4. Click "Build Logs" to see if there were any errors during the build process
 
-## 7. Try a Local Build
+## 8. Try a Local Build
 
 Test if your application builds correctly locally:
 
@@ -74,7 +95,7 @@ npx serve -s dist
 
 Visit `http://localhost:3000` to see if your application works locally.
 
-## 8. Check CORS Configuration
+## 9. Check CORS Configuration
 
 If you're getting CORS errors, make sure your backend API allows requests from your Vercel domain:
 
