@@ -36,11 +36,6 @@ api.interceptors.request.use(
     //   config.headers.Authorization = `Bearer ${token}`;
     // }
     
-    // Log the API URL being used (helpful for debugging)
-    const baseUrl = config.baseURL || '';
-    const url = config.url || '';
-    console.log('API Request to:', baseUrl + url);
-    
     return config;
   },
   (error) => {
