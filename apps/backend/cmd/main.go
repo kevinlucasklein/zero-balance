@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -10,13 +11,14 @@ import (
 )
 
 func main() {
-	database.ConnectDB()
+	// Initialize database
+	database.InitDB()
 
 	app := fiber.New()
 
 	// Add CORS middleware
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "http://localhost:5173",
+		AllowOrigins: "*", // In production, you should restrict this
 		AllowHeaders: "Origin, Content-Type, Accept",
 		AllowMethods: "GET, POST, PUT, DELETE",
 	}))
@@ -25,5 +27,11 @@ func main() {
 		return c.SendString("ZeroBalance API is running!")
 	})
 
-	log.Fatal(app.Listen(":8080"))
+	// Get port from environment variable or use default
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	log.Fatal(app.Listen(":" + port))
 }

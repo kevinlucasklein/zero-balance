@@ -43,8 +43,10 @@ func RunMigrations() error {
 		appliedMigrations[name] = true
 	}
 
-	// Get migration files
-	migrationsDir := filepath.Join("database", "migrations")
+	// Get migration files - try both relative and absolute paths
+	migrationsDir := getMigrationsPath()
+	fmt.Printf("Looking for migrations in: %s\n", migrationsDir)
+
 	files, err := os.ReadDir(migrationsDir)
 	if err != nil {
 		return fmt.Errorf("failed to read migrations directory: %v", err)
@@ -126,7 +128,7 @@ func RollbackMigration() error {
 
 	// Find corresponding rollback file
 	rollbackName := strings.TrimSuffix(migrationName, ".sql") + "_rollback.sql"
-	rollbackPath := filepath.Join("database", "migrations", rollbackName)
+	rollbackPath := filepath.Join(getMigrationsPath(), rollbackName)
 
 	// Check if rollback file exists
 	if _, err := os.Stat(rollbackPath); os.IsNotExist(err) {
@@ -166,4 +168,31 @@ func RollbackMigration() error {
 
 	fmt.Printf("Successfully rolled back migration: %s\n", migrationName)
 	return nil
+}
+
+// getMigrationsPath returns the path to the migrations directory
+// It tries multiple possible locations to handle different environments
+func getMigrationsPath() string {
+	// Check if MIGRATIONS_PATH environment variable is set
+	if path := os.Getenv("MIGRATIONS_PATH"); path != "" {
+		return path
+	}
+
+	// Try different possible locations
+	possiblePaths := []string{
+		"database/migrations",       // When running from project root
+		"./database/migrations",     // When running from project root with explicit ./
+		"../database/migrations",    // When running from a subdirectory
+		"../../database/migrations", // When running from a nested subdirectory
+		"/app/database/migrations",  // When running in Docker container
+	}
+
+	for _, path := range possiblePaths {
+		if _, err := os.Stat(path); err == nil {
+			return path
+		}
+	}
+
+	// Default to the most likely path
+	return "database/migrations"
 }
