@@ -104,11 +104,15 @@ func main() {
 		})
 	})
 
-	// Register authentication routes
+	// Register routes if database is connected
 	if database.DB != nil {
+		// Register authentication routes
 		routes.RegisterAuthRoutes(app, database.DB)
+
+		// Register profile routes
+		routes.RegisterProfileRoutes(app, database.DB)
 	} else {
-		log.Println("WARNING: Skipping auth routes registration due to missing database connection")
+		log.Println("WARNING: Skipping routes registration due to missing database connection")
 	}
 
 	// Get port from environment variable or use default
