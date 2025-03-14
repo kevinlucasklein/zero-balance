@@ -25,6 +25,14 @@ func main() {
 	fmt.Printf("DB_NAME: %s\n", getEnvOrDefault("DB_NAME", ""))
 	fmt.Printf("DB_SSL_MODE: %s\n", getEnvOrDefault("DB_SSL_MODE", "disable"))
 
+	// Check for Railway-specific PostgreSQL environment variables
+	fmt.Println("Railway PostgreSQL environment variables:")
+	fmt.Printf("PGHOST: %s\n", getEnvOrDefault("PGHOST", ""))
+	fmt.Printf("PGPORT: %s\n", getEnvOrDefault("PGPORT", ""))
+	fmt.Printf("PGUSER: %s\n", getEnvOrDefault("PGUSER", ""))
+	fmt.Printf("PGDATABASE: %s\n", getEnvOrDefault("PGDATABASE", ""))
+	fmt.Printf("PGSSLMODE: %s\n", getEnvOrDefault("PGSSLMODE", ""))
+
 	// Initialize database with error handling
 	fmt.Println("Initializing database connection...")
 	err := initDatabaseWithRetry(5)

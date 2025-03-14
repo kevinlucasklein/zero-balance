@@ -13,12 +13,12 @@ import (
 var DB *sql.DB
 
 func ConnectDB() error {
-	// Get database connection details from environment variables or use defaults
-	dbUser := getEnv("DB_USER", "zero_user")
-	dbPass := getEnv("DB_PASS", "zero_pass")
-	dbName := getEnv("DB_NAME", "zero_balance")
-	dbHost := getEnv("DB_HOST", "localhost")
-	dbPort := getEnv("DB_PORT", "5432")
+	// Check for Railway-specific PostgreSQL environment variables first
+	dbUser := getEnvWithFallbacks("DB_USER", "PGUSER", "zero_user")
+	dbPass := getEnvWithFallbacks("DB_PASS", "PGPASSWORD", "zero_pass")
+	dbName := getEnvWithFallbacks("DB_NAME", "PGDATABASE", "zero_balance")
+	dbHost := getEnvWithFallbacks("DB_HOST", "PGHOST", "localhost")
+	dbPort := getEnvWithFallbacks("DB_PORT", "PGPORT", "5432")
 	sslMode := getEnv("DB_SSL_MODE", "disable")
 
 	// Build connection string
@@ -73,8 +73,24 @@ func InitDB() error {
 
 // Helper function to get environment variable with fallback
 func getEnv(key, fallback string) string {
-	if value, exists := os.LookupEnv(key); exists {
+	if value, exists := os.LookupEnv(key); exists && value != "" {
 		return value
 	}
+	return fallback
+}
+
+// Helper function to get environment variable with multiple fallbacks
+func getEnvWithFallbacks(key1, key2, fallback string) string {
+	// Try first key
+	if value, exists := os.LookupEnv(key1); exists && value != "" {
+		return value
+	}
+
+	// Try second key
+	if value, exists := os.LookupEnv(key2); exists && value != "" {
+		return value
+	}
+
+	// Return fallback
 	return fallback
 }
