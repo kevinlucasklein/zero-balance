@@ -13,6 +13,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/recover"
 
 	"github.com/kevinlucasklein/zero-balance/database"
+	"github.com/kevinlucasklein/zero-balance/routes"
 )
 
 func main() {
@@ -72,7 +73,7 @@ func main() {
 	// Add CORS middleware
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: getCorsOrigins(),
-		AllowHeaders: "Origin, Content-Type, Accept",
+		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
 		AllowMethods: "GET, POST, PUT, DELETE",
 	}))
 
@@ -102,6 +103,13 @@ func main() {
 			"env":       getEnvironmentVariables(),
 		})
 	})
+
+	// Register authentication routes
+	if database.DB != nil {
+		routes.RegisterAuthRoutes(app, database.DB)
+	} else {
+		log.Println("WARNING: Skipping auth routes registration due to missing database connection")
+	}
 
 	// Get port from environment variable or use default
 	port := os.Getenv("PORT")
