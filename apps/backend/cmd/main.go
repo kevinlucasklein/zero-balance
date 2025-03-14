@@ -191,6 +191,9 @@ func getCorsOrigins() string {
 		// Use specific origins in production
 		origins := getEnvOrDefault("CORS_ORIGINS", "https://zero-balance.vercel.app")
 		fmt.Printf("Running in production mode. CORS origins: %s\n", origins)
+
+		// If there are multiple origins, return them as-is (Fiber will handle comma-separated lists)
+		// This allows setting CORS_ORIGINS=https://domain1.com,https://domain2.com
 		return origins
 	}
 
