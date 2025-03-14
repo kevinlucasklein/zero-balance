@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -15,23 +16,30 @@ import (
 )
 
 func main() {
+	// Check if debug mode is enabled
+	debugMode := getEnvAsBool("DEBUG", false)
+
 	// Print environment information
 	fmt.Println("Starting ZeroBalance API...")
-	fmt.Println("Environment variables:")
-	fmt.Printf("PORT: %s\n", getEnvOrDefault("PORT", "8080"))
-	fmt.Printf("DB_HOST: %s\n", getEnvOrDefault("DB_HOST", "localhost"))
-	fmt.Printf("DB_PORT: %s\n", getEnvOrDefault("DB_PORT", "5432"))
-	fmt.Printf("DB_USER: %s\n", getEnvOrDefault("DB_USER", ""))
-	fmt.Printf("DB_NAME: %s\n", getEnvOrDefault("DB_NAME", ""))
-	fmt.Printf("DB_SSL_MODE: %s\n", getEnvOrDefault("DB_SSL_MODE", "disable"))
 
-	// Check for Railway-specific PostgreSQL environment variables
-	fmt.Println("Railway PostgreSQL environment variables:")
-	fmt.Printf("PGHOST: %s\n", getEnvOrDefault("PGHOST", ""))
-	fmt.Printf("PGPORT: %s\n", getEnvOrDefault("PGPORT", ""))
-	fmt.Printf("PGUSER: %s\n", getEnvOrDefault("PGUSER", ""))
-	fmt.Printf("PGDATABASE: %s\n", getEnvOrDefault("PGDATABASE", ""))
-	fmt.Printf("PGSSLMODE: %s\n", getEnvOrDefault("PGSSLMODE", ""))
+	// Print environment variables in debug mode
+	if debugMode {
+		fmt.Println("Environment variables:")
+		fmt.Printf("PORT: %s\n", getEnvOrDefault("PORT", "8080"))
+		fmt.Printf("DB_HOST: %s\n", getEnvOrDefault("DB_HOST", "localhost"))
+		fmt.Printf("DB_PORT: %s\n", getEnvOrDefault("DB_PORT", "5432"))
+		fmt.Printf("DB_USER: %s\n", getEnvOrDefault("DB_USER", ""))
+		fmt.Printf("DB_NAME: %s\n", getEnvOrDefault("DB_NAME", ""))
+		fmt.Printf("DB_SSL_MODE: %s\n", getEnvOrDefault("DB_SSL_MODE", "disable"))
+
+		// Check for Railway-specific PostgreSQL environment variables
+		fmt.Println("Railway PostgreSQL environment variables:")
+		fmt.Printf("PGHOST: %s\n", getEnvOrDefault("PGHOST", ""))
+		fmt.Printf("PGPORT: %s\n", getEnvOrDefault("PGPORT", ""))
+		fmt.Printf("PGUSER: %s\n", getEnvOrDefault("PGUSER", ""))
+		fmt.Printf("PGDATABASE: %s\n", getEnvOrDefault("PGDATABASE", ""))
+		fmt.Printf("PGSSLMODE: %s\n", getEnvOrDefault("PGSSLMODE", ""))
+	}
 
 	// Initialize database with error handling
 	fmt.Println("Initializing database connection...")
@@ -63,7 +71,7 @@ func main() {
 
 	// Add CORS middleware
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "*", // In production, you should restrict this
+		AllowOrigins: getCorsOrigins(),
 		AllowHeaders: "Origin, Content-Type, Accept",
 		AllowMethods: "GET, POST, PUT, DELETE",
 	}))
@@ -114,6 +122,21 @@ func getEnvOrDefault(key, defaultValue string) string {
 	return defaultValue
 }
 
+// Helper function to get environment variable as boolean
+func getEnvAsBool(key string, defaultValue bool) bool {
+	valStr := os.Getenv(key)
+	if valStr == "" {
+		return defaultValue
+	}
+
+	val, err := strconv.ParseBool(valStr)
+	if err != nil {
+		return defaultValue
+	}
+
+	return val
+}
+
 // Initialize database with retry
 func initDatabaseWithRetry(maxRetries int) error {
 	var err error
@@ -159,4 +182,17 @@ func getEnvironmentVariables() map[string]string {
 		}
 	}
 	return env
+}
+
+// Helper function to get CORS origins based on environment
+func getCorsOrigins() string {
+	// Check if we're in production
+	if os.Getenv("ENVIRONMENT") == "production" {
+		// Use specific origins in production
+		origins := getEnvOrDefault("CORS_ORIGINS", "https://zero-balance.app")
+		return origins
+	}
+
+	// In development, allow all origins
+	return "*"
 }

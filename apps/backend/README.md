@@ -17,7 +17,13 @@ go run cmd/main.go
 
 The application uses the following environment variables:
 
+### Server Configuration
 - `PORT`: The port to run the server on (default: 8080)
+- `DEBUG`: Enable debug logging (default: false)
+- `ENVIRONMENT`: Current environment (development/production)
+- `CORS_ORIGINS`: Comma-separated list of allowed origins for CORS in production (default: "https://zero-balance.app")
+
+### Database Configuration
 - `DB_HOST`: PostgreSQL host (default: localhost)
 - `DB_PORT`: PostgreSQL port (default: 5432)
 - `DB_USER`: PostgreSQL user
@@ -25,6 +31,14 @@ The application uses the following environment variables:
 - `DB_NAME`: PostgreSQL database name
 - `DB_SSL_MODE`: PostgreSQL SSL mode (default: disable)
 - `MIGRATIONS_PATH`: Path to migration files (optional)
+
+### Railway-specific Variables
+The application will automatically use these variables if provided by Railway:
+- `PGHOST`: PostgreSQL host
+- `PGPORT`: PostgreSQL port
+- `PGUSER`: PostgreSQL user
+- `PGPASSWORD`: PostgreSQL password
+- `PGDATABASE`: PostgreSQL database name
 
 For local development, you can create a `.env` file in the root directory with these variables. **Do not commit this file to version control.**
 
