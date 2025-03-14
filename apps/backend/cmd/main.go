@@ -187,12 +187,14 @@ func getEnvironmentVariables() map[string]string {
 // Helper function to get CORS origins based on environment
 func getCorsOrigins() string {
 	// Check if we're in production
-	if os.Getenv("ENVIRONMENT") == "production" {
+	if os.Getenv("ENVIRONMENT") == "production" || os.Getenv("RAILWAY_ENVIRONMENT_NAME") == "production" {
 		// Use specific origins in production
-		origins := getEnvOrDefault("CORS_ORIGINS", "https://zero-balance.app")
+		origins := getEnvOrDefault("CORS_ORIGINS", "https://zero-balance.vercel.app")
+		fmt.Printf("Running in production mode. CORS origins: %s\n", origins)
 		return origins
 	}
 
 	// In development, allow all origins
+	fmt.Println("Running in development mode. CORS origins: *")
 	return "*"
 }
