@@ -10,40 +10,18 @@ Open your browser's developer tools (F12 or right-click and select "Inspect") an
 - Failed network requests to load JavaScript bundles
 - CORS errors when connecting to your API
 
-## 2. Set Up Environment Variables in Vercel
+## 2. Fix API Proxy Configuration
 
-The most secure way to connect to your backend API is using environment variables:
+The most common issue is with the API proxy configuration. You need to:
 
-1. Go to your Vercel dashboard
-2. Select your project
-3. Go to "Settings" > "Environment Variables"
-4. Add the following variables:
-   - `VITE_API_URL` - Your complete backend API URL (e.g., `https://your-api.railway.app`)
-
-**Important**: Never commit sensitive URLs or credentials to your repository.
-
-## 3. Configure API Rewrites in Vercel Dashboard
-
-Instead of hardcoding your API URL in vercel.json, you can configure rewrites in the Vercel dashboard:
-
-1. Go to your project settings
-2. Navigate to "Settings" > "Rewrites"
-3. Add a new rewrite:
-   - Source: `/api/:path*`
-   - Destination: Your actual backend API URL with path parameter (e.g., `https://your-api.railway.app/:path*`)
-
-This keeps your API URL out of your code repository.
-
-## 4. Verify Your vercel.json Configuration
-
-Make sure your `vercel.json` file is correctly configured:
+1. Edit your `vercel.json` file to include your actual API URL:
 
 ```json
 {
   "rewrites": [
-    { 
-      "source": "/api/:path*", 
-      "destination": "/api/:path*" 
+    {
+      "source": "/api/:path*",
+      "destination": "https://your-actual-api-url.railway.app/:path*"
     },
     {
       "source": "/(.*)",
@@ -53,7 +31,32 @@ Make sure your `vercel.json` file is correctly configured:
 }
 ```
 
-Note: Vercel doesn't allow mixing newer properties (`rewrites`) with legacy properties (`routes`).
+Replace `https://your-actual-api-url.railway.app` with your actual backend API URL.
+
+**Important**: This URL will be visible in your repository. For a more secure approach, use environment variables and configure rewrites in the Vercel dashboard instead.
+
+## 3. Configure API Rewrites in Vercel Dashboard (More Secure)
+
+For a more secure approach:
+
+1. Go to your project settings in Vercel
+2. Navigate to "Settings" > "Rewrites"
+3. Add a new rewrite:
+   - Source: `/api/:path*`
+   - Destination: Your actual backend API URL with path parameter (e.g., `https://your-api.railway.app/:path*`)
+4. Remove the API rewrite from your `vercel.json` file
+
+This keeps your API URL out of your code repository.
+
+## 4. Set Up Environment Variables in Vercel
+
+Set environment variables for your API URL:
+
+1. Go to your Vercel dashboard
+2. Select your project
+3. Go to "Settings" > "Environment Variables"
+4. Add the following variables:
+   - `VITE_API_URL` - Your complete backend API URL (e.g., `https://your-api.railway.app`)
 
 ## 5. Update Your API Service
 
@@ -64,7 +67,23 @@ Make sure your API service is configured to use environment variables:
 const apiUrl = import.meta.env.VITE_API_URL || '';
 ```
 
-## 6. Redeploy Your Application
+## 6. Avoid Circular References
+
+Make sure your `vercel.json` doesn't have circular references like:
+
+```json
+// INCORRECT - This creates a circular reference
+{
+  "rewrites": [
+    { 
+      "source": "/api/:path*", 
+      "destination": "/api/:path*" 
+    }
+  ]
+}
+```
+
+## 7. Redeploy Your Application
 
 After making changes:
 
@@ -74,7 +93,7 @@ After making changes:
    - Click "Deployments"
    - Click "Redeploy" on your latest deployment
 
-## 7. Check Build Logs
+## 8. Check Build Logs
 
 If your application still isn't working:
 
@@ -83,7 +102,7 @@ If your application still isn't working:
 3. Select your latest deployment
 4. Click "Build Logs" to see if there were any errors during the build process
 
-## 8. Try a Local Build
+## 9. Try a Local Build
 
 Test if your application builds correctly locally:
 
@@ -95,7 +114,7 @@ npx serve -s dist
 
 Visit `http://localhost:3000` to see if your application works locally.
 
-## 9. Check CORS Configuration
+## 10. Check CORS Configuration
 
 If you're getting CORS errors, make sure your backend API allows requests from your Vercel domain:
 
