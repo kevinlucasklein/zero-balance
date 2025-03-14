@@ -118,8 +118,8 @@ func getEnvOrDefault(key, defaultValue string) string {
 func initDatabaseWithRetry(maxRetries int) error {
 	var err error
 	for i := 0; i < maxRetries; i++ {
-		// Try to connect to database directly
-		err = database.ConnectDB()
+		// Try to initialize database with migrations
+		err = database.InitDB()
 
 		// If successful, return nil
 		if err == nil {
@@ -127,7 +127,7 @@ func initDatabaseWithRetry(maxRetries int) error {
 		}
 
 		// Log error and retry
-		log.Printf("Failed to connect to database (attempt %d/%d): %v", i+1, maxRetries, err)
+		log.Printf("Failed to initialize database (attempt %d/%d): %v", i+1, maxRetries, err)
 
 		// Wait before retrying
 		if i < maxRetries-1 {
