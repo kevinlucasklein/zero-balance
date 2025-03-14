@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	_ "github.com/lib/pq"
 )
 
 var DB *sql.DB
 
-func ConnectDB() {
+func ConnectDB() error {
 	// Get database connection details from environment variables or use defaults
 	dbUser := getEnv("DB_USER", "zero_user")
 	dbPass := getEnv("DB_PASS", "zero_pass")
@@ -22,36 +23,52 @@ func ConnectDB() {
 
 	// Build connection string
 	connStr := fmt.Sprintf(
-		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
+		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s connect_timeout=5",
 		dbHost, dbPort, dbUser, dbPass, dbName, sslMode,
 	)
+
+	// Log connection attempt (without password)
+	log.Printf("Connecting to PostgreSQL at %s:%s/%s (user: %s, sslmode: %s)",
+		dbHost, dbPort, dbName, dbUser, sslMode)
 
 	// Connect to database
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("failed to open database connection: %v", err)
 	}
 
-	if err := db.Ping(); err != nil {
-		log.Fatal(err)
+	// Set connection pool settings
+	db.SetMaxOpenConns(25)
+	db.SetMaxIdleConns(5)
+	db.SetConnMaxLifetime(time.Minute * 5)
+
+	// Test the connection
+	err = db.Ping()
+	if err != nil {
+		return fmt.Errorf("failed to ping database: %v", err)
 	}
 
-	fmt.Println("Connected to the PostgreSQL database")
+	log.Println("Connected to the PostgreSQL database")
 
 	DB = db
+	return nil
 }
 
 // InitDB connects to the database and runs migrations
-func InitDB() {
+func InitDB() error {
 	// Connect to the database
-	ConnectDB()
+	err := ConnectDB()
+	if err != nil {
+		return fmt.Errorf("database connection failed: %v", err)
+	}
 
 	// Run migrations
 	if err := RunMigrations(); err != nil {
-		log.Printf("Error running migrations: %v", err)
-	} else {
-		fmt.Println("Database migrations applied successfully")
+		return fmt.Errorf("error running migrations: %v", err)
 	}
+
+	log.Println("Database migrations applied successfully")
+	return nil
 }
 
 // Helper function to get environment variable with fallback

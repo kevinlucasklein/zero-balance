@@ -24,7 +24,10 @@ RUN go build -o main ./cmd/main.go
 FROM alpine:latest
 
 # Add necessary packages
-RUN apk --no-cache add ca-certificates
+RUN apk --no-cache add ca-certificates tzdata curl
+
+# Set timezone to UTC
+ENV TZ=UTC
 
 WORKDIR /app
 
@@ -34,9 +37,13 @@ COPY --from=builder /build/main .
 # Copy migrations directory
 COPY --from=builder /build/database/migrations ./database/migrations
 
-# Create and set up the start script
+# Create and set up the start script with better logging
 RUN echo '#!/bin/sh' > start.sh && \
+    echo 'echo "Starting ZeroBalance API..."' >> start.sh && \
+    echo 'echo "Container environment:"' >> start.sh && \
+    echo 'env | grep -v PASSWORD | grep -v PASS' >> start.sh && \
     echo 'chmod +x ./main' >> start.sh && \
+    echo 'echo "Running application..."' >> start.sh && \
     echo './main' >> start.sh && \
     chmod +x start.sh
 
