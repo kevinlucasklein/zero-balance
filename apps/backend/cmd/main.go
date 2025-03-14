@@ -110,21 +110,8 @@ func getEnvOrDefault(key, defaultValue string) string {
 func initDatabaseWithRetry(maxRetries int) error {
 	var err error
 	for i := 0; i < maxRetries; i++ {
-		// Try to initialize database
-		func() {
-			// Use recover to catch panics
-			defer func() {
-				if r := recover(); r != nil {
-					err = fmt.Errorf("panic in database initialization: %v", r)
-				}
-			}()
-
-			// Try to connect to database
-			database.ConnectDB()
-
-			// If we got here, connection was successful
-			err = nil
-		}()
+		// Try to connect to database directly
+		err = database.ConnectDB()
 
 		// If successful, return nil
 		if err == nil {
