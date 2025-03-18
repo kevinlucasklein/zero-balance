@@ -3,14 +3,48 @@ services:
   postgres:
     image: postgres:15
     restart: always
+    env_file:
+      - ../apps/backend/.env
     environment:
-      POSTGRES_USER: zero_user
-      POSTGRES_PASSWORD: zero_pass
-      POSTGRES_DB: zero_balance
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASS:-postgres}
+      POSTGRES_DB: ${DB_NAME:-zero_balance}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/backend.Dockerfile
+    env_file:
+      - ../apps/backend/.env
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - DB_HOST=postgres
+      - DB_PORT=5432
+    depends_on:
+      - postgres
+    volumes:
+      - ../apps/backend:/app
+      - /app/node_modules
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/frontend.Dockerfile
+    env_file:
+      - ../apps/frontend/.env
+    ports:
+      - "3000:3000"
+    volumes:
+      - ../apps/frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
 
 volumes:
   postgres_data:

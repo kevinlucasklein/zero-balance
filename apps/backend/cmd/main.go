@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -17,6 +19,9 @@ import (
 )
 
 func main() {
+	// Load environment variables from .env file manually
+	loadEnvFile()
+
 	// Check if debug mode is enabled
 	debugMode := getEnvAsBool("DEBUG", false)
 
@@ -212,4 +217,70 @@ func getCorsOrigins() string {
 	// In development, allow all origins
 	fmt.Println("Running in development mode. CORS origins: *")
 	return "*"
+}
+
+// loadEnvFile manually reads the .env file and sets environment variables
+func loadEnvFile() {
+	// Try different possible locations for .env file
+	possiblePaths := []string{
+		".env",       // When running from project root
+		"../.env",    // When running from cmd directory
+		"../../.env", // When running from a nested directory
+		"/app/.env",  // When running in Docker container
+		filepath.Join(filepath.Dir(os.Args[0]), ".env"), // Next to the binary
+	}
+
+	for _, path := range possiblePaths {
+		if fileExists(path) {
+			fmt.Printf("Loading environment from %s\n", path)
+
+			// Read the file
+			content, err := os.ReadFile(path)
+			if err != nil {
+				fmt.Printf("Error reading .env file: %v\n", err)
+				continue
+			}
+
+			// Parse lines
+			lines := string(content)
+			for _, line := range strings.Split(lines, "\n") {
+				line = strings.TrimSpace(line)
+				if line == "" || strings.HasPrefix(line, "#") {
+					continue
+				}
+
+				parts := strings.SplitN(line, "=", 2)
+				if len(parts) != 2 {
+					continue
+				}
+
+				key := strings.TrimSpace(parts[0])
+				value := strings.TrimSpace(parts[1])
+
+				// Handle quoted values
+				if len(value) > 1 && (strings.HasPrefix(value, "\"") && strings.HasSuffix(value, "\"")) ||
+					(strings.HasPrefix(value, "'") && strings.HasSuffix(value, "'")) {
+					value = value[1 : len(value)-1]
+				}
+
+				// Set environment variable
+				os.Setenv(key, value)
+			}
+
+			// Successfully loaded .env file
+			return
+		}
+	}
+
+	// If we get here, no .env file was found
+	fmt.Println("Warning: No .env file found")
+}
+
+// fileExists checks if a file exists and is not a directory
+func fileExists(path string) bool {
+	info, err := os.Stat(path)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return !info.IsDir()
 }
