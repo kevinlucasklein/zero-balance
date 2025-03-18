@@ -1,17 +1,5 @@
 import api from './api';
-
-// Types
-export interface User {
-  id: number;
-  name: string;
-  email: string;
-}
-
-export interface AuthResponse {
-  token: string;
-  user: User;
-  message: string;
-}
+import { User, AuthResponse, LoginCredentials, SignupCredentials } from '../types/auth';
 
 // Store token in localStorage
 const setToken = (token: string) => {
@@ -33,11 +21,8 @@ const isLoggedIn = (): boolean => {
 
 // Register a new user
 export const signup = async (name: string, email: string, password: string): Promise<AuthResponse> => {
-  const response = await api.post<AuthResponse>('/api/auth/signup', {
-    name,
-    email,
-    password,
-  });
+  const credentials: SignupCredentials = { name, email, password };
+  const response = await api.post<AuthResponse>('/api/auth/signup', credentials);
   
   // Store token and update headers
   setToken(response.data.token);
@@ -47,10 +32,8 @@ export const signup = async (name: string, email: string, password: string): Pro
 
 // Login user
 export const login = async (email: string, password: string): Promise<AuthResponse> => {
-  const response = await api.post<AuthResponse>('/api/auth/login', {
-    email,
-    password,
-  });
+  const credentials: LoginCredentials = { email, password };
+  const response = await api.post<AuthResponse>('/api/auth/login', credentials);
   
   // Store token and update headers
   setToken(response.data.token);

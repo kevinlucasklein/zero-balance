@@ -1,33 +1,16 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import authService, { User } from '../services/auth';
+import { useState, useEffect, ReactNode } from 'react';
+import authService from '../../services/auth';
+import { User } from '../../types/auth';
+import { AuthContext, AuthContextType } from './types';
 
-// Define the shape of our context
-interface AuthContextType {
-  user: User | null;
-  loading: boolean;
-  error: string | null;
-  login: (email: string, password: string) => Promise<void>;
-  signup: (name: string, email: string, password: string) => Promise<void>;
-  logout: () => void;
-  clearError: () => void;
+interface AuthProviderProps {
+  children: ReactNode;
 }
 
-// Create the context with a default value
-const AuthContext = createContext<AuthContextType>({
-  user: null,
-  loading: false,
-  error: null,
-  login: async () => {},
-  signup: async () => {},
-  logout: () => {},
-  clearError: () => {},
-});
-
-// Custom hook to use the auth context
-export const useAuth = () => useContext(AuthContext);
-
-// Provider component
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
+/**
+ * Provider component for authentication state
+ */
+export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -109,7 +92,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   // Context value
-  const value = {
+  const value: AuthContextType = {
     user,
     loading,
     error,
