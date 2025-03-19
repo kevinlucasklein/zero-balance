@@ -6,6 +6,7 @@ import AuthPage from "./components/AuthPage";
 import ProfilePage from "./components/ProfilePage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Navbar from "./components/Navbar";
+import LandingPage from "./components/LandingPage";
 
 function App() {
   const { user } = useAuth();
@@ -86,10 +87,22 @@ function App() {
           <Route 
             path="/" 
             element={
+              user ? (
+                <ProtectedRoute>
+                  <Home />
+                </ProtectedRoute>
+              ) : (
+                <LandingPage />
+              )
+            } 
+          />
+          <Route
+            path="/dashboard"
+            element={
               <ProtectedRoute>
                 <Home />
               </ProtectedRoute>
-            } 
+            }
           />
         </Routes>
       </div>
